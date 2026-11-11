@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Облигационный адвент</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oranienbaum&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Банкнотная бумага, тёмно-зелёная «гравюра», красный штамп. Сетка = купонный лист облигации: 7 колонок, как неделя. */
+  --paper: #e9efe9;
+  --paper-2: #dfe7e0;
+  --ink: #12382c;
+  --ink-soft: #4b6a5e;
+  --rule: #a9bfb3;
+  --stamp: #c2402b;
+  --gold: #9a7a2e;
+  --font-display: "Oranienbaum", "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(18,56,44,.035) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(18,56,44,.035) 0 1px, transparent 1px 7px);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 36px; }
+
+/* ---------- шапка ---------- */
+header.cert {
+  border: 2px solid var(--ink);
+  outline: 1px solid var(--ink);
+  outline-offset: 5px;
+  padding: 28px 28px 24px;
+  background: var(--paper);
+  display: grid;
+  gap: 14px;
+  position: relative;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(44px, 8vw, 92px);
+  line-height: .95;
+  margin: 4px 0 0;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+h1 em { font-style: normal; color: var(--stamp); }
+.lede { max-width: 62ch; margin: 0; color: var(--ink); font-size: 17px; }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.fact { display: grid; }
+.fact b { font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: 1; }
+.fact span { font-size: 13px; color: var(--ink-soft); }
+
+/* ---------- панель ---------- */
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
+.bar p { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 60ch; }
+.toggle { display: inline-flex; gap: 10px; align-items: center; font-size: 14px; cursor: pointer; user-select: none; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--ink); }
+
+/* ---------- купонный лист ---------- */
+.sheet {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+.dow {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-soft); text-align: center; padding-bottom: 2px;
+}
+.blank { border: 1px dashed var(--rule); opacity: .5; min-height: 132px; }
+
+.coupon {
+  position: relative;
+  display: grid;
+  min-height: 132px;
+  perspective: 900px;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.coupon:focus-visible { outline: 3px solid var(--stamp); outline-offset: 3px; }
+.face {
+  grid-area: 1 / 1;
+  position: relative;
+  min-height: 132px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform .6s cubic-bezier(.3,.7,.2,1);
+  padding: 10px 11px 9px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--paper);
+  /* перфорация по краям */
+  -webkit-mask:
+    radial-gradient(circle 3px at 50% 0, transparent 98%, #000) top / 10px 51% repeat-x,
+    radial-gradient(circle 3px at 50% 100%, transparent 98%, #000) bottom / 10px 51% repeat-x;
+  mask:
+    radial-gradient(circle 3px at 50% 0, transparent 98%, #000) top / 10px 51% repeat-x,
+    radial-gradient(circle 3px at 50% 100%, transparent 98%, #000) bottom / 10px 51% repeat-x;
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.front::before {
+  content: ""; position: absolute; inset: 6px;
+  border: 1px solid var(--rule);
+  background:
+    radial-gradient(ellipse at 120% 120%, rgba(18,56,44,.08), transparent 60%),
+    repeating-radial-gradient(circle at 100% 100%, transparent 0 6px, rgba(18,56,44,.05) 6px 7px);
+  pointer-events: none;
+}
+.front > * { position: relative; }
+.num { font-family: var(--font-display); font-size: 48px; line-height: .9; }
+.cap { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.front .row { display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; }
+.lock { font-size: 11px; color: var(--ink-soft); }
+.coupon.weekend .front { background: var(--paper-2); }
+.coupon.weekend .num { color: var(--ink-soft); }
+.coupon.today .front { box-shadow: inset 0 0 0 2px var(--stamp); }
+.coupon.today .cap.t { color: var(--stamp); }
+
+.back { transform: rotateY(180deg); background: #f4f7f3; gap: 4px; justify-content: flex-start; padding-bottom: 34px; }
+.coupon.open .front { transform: rotateY(-180deg); }
+.coupon.open .back { transform: rotateY(0); }
+.back .amt { font-family: var(--font-display); font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.back .amt small { font-size: 15px; }
+.back .who { font-weight: 600; font-size: 13px; line-height: 1.25; }
+.back .meta { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); line-height: 1.35; word-break: break-all; }
+.back .joke { font-size: 12.5px; line-height: 1.35; }
+.chip { display: inline-block; font-family: var(--font-mono); font-size: 10px; padding: 1px 5px; border: 1px solid currentColor; border-radius: 2px; margin-right: 4px; white-space: nowrap; }
+.chip.est { color: var(--gold); }
+.stamp {
+  position: absolute; right: 6px; bottom: 8px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: .12em;
+  color: var(--stamp); border: 2px solid var(--stamp); padding: 2px 6px; border-radius: 3px;
+  transform: rotate(-11deg); opacity: .85;
+}
+
+.coupon.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+/* ---------- тост ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px);
+  background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 4px;
+  font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  max-width: calc(100% - 32px);
+}
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- список покупок ---------- */
+section h2 {
+  font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.05; margin: 0 0 6px; text-wrap: balance;
+}
+section > p { margin: 0 0 16px; max-width: 65ch; }
+.tablewrap { overflow-x: auto; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+td.r, th.r { text-align: right; }
+td.mono { font-family: var(--font-mono); font-size: 12.5px; }
+tfoot td { font-weight: 600; border-bottom: 0; }
+
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 28px; }
+.rule h3 { font-family: var(--font-mono); font-weight: 500; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 4px; color: var(--stamp); }
+.rule p { margin: 0; font-size: 14.5px; }
+
+footer { font-size: 12.5px; color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 14px; max-width: 80ch; }
+footer a { color: var(--ink); }
+
+/* ---------- телефон ---------- */
+@media (max-width: 720px) {
+  .sheet { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dow, .blank { display: none; }
+  .num { font-size: 40px; }
+  header.cert { padding: 22px 18px 18px; }
+}
+@media (max-width: 380px) {
+  .sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .face { transition: none; }
+  .coupon.shake { animation: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="cert">
+    <div class="eyebrow"><span>Купонный лист · серия XII-2026</span><span>Мосбиржа · рубли · 1 лот = 1 облигация</span></div>
+    <h1>Облигационный <em>адвент</em></h1>
+    <p class="lede">22 рабочих дня декабря — 22 купона. Каждое утро на брокерский счёт капает немного денег от Ростелекома, МТС, Магнита, Минфина и компании. Отрывайте по одному купону в день.</p>
+    <div class="facts">
+      <div class="fact"><b>22</b><span>выплаты подряд</span></div>
+      <div class="fact"><b id="total">≈ 0 ₽</b><span>за месяц до налога</span></div>
+      <div class="fact"><b id="net">≈ 0 ₽</b><span>после НДФЛ 13%</span></div>
+      <div class="fact"><b>≈ 22 тыс. ₽</b><span>стоимость набора</span></div>
+    </div>
+  </header>
+
+  <div class="bar">
+    <p id="status">Купон можно оторвать в день выплаты (по московскому времени). Выходные окошки тоже открываются — там бонусы.</p>
+    <label class="toggle" for="peek"><input type="checkbox" id="peek"> Подглядеть всё (для организатора)</label>
+  </div>
+
+  <div class="sheet" id="sheet" aria-label="Купоны декабря 2026"></div>
+
+  <section aria-labelledby="buy-h">
+    <h2 id="buy-h">Что купить до 26 ноября</h2>
+    <p>По одной облигации каждого выпуска. Ищите в приложении брокера по ISIN или названию. Купон получает тот, кто держит бумагу на дату фиксации (обычно за день до выплаты), а сделка рассчитывается на следующий рабочий день — поэтому покупать лучше заранее, одним заходом.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Дек</th><th>Выпуск</th><th>ISIN / код</th><th>Рейтинг</th><th class="r">Купон, ₽</th><th>Примечание</th></tr></thead>
+        <tbody id="buy"></tbody>
+        <tfoot><tr><td></td><td>Итого за декабрь</td><td></td><td></td><td class="r" id="tsum"></td><td>до налога</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="rules-h">
+    <h2 id="rules-h">Мелкий шрифт</h2>
+    <div class="rules">
+      <div class="rule"><h3>НКД</h3><p>При покупке вы доплачиваете продавцу купон, накопленный с прошлой выплаты. Так что часть декабрьских денег — это ваши же деньги, вернувшиеся с поклоном.</p></div>
+      <div class="rule"><h3>Сдвиг на день</h3><p>Если дата выпала на выходной, купон придёт в ближайший рабочий день. Некоторые брокеры зачисляют выплату на следующий день после даты.</p></div>
+      <div class="rule"><h3>Флоатеры</h3><p>У трёх бумаг купон плавающий: сумма зависит от ставки и объявляется ближе к дате. В календаре — оценка, помечена «≈».</p></div>
+      <div class="rule"><h3>Риск</h3><p>Облигации — не вклад. Цена может колебаться, эмитент теоретически может не заплатить. Здесь только высокие рейтинги (A и выше) и ОФЗ.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Даты и суммы — по графикам купонов Мосбиржи на 11 ноября 2026 (сверено по <a href="https://investmint.ru/">investmint.ru</a> и <a href="https://theinvest.ru/obligacii/kalendar-kuponov">theinvest.ru</a>). Даты с пометкой «расч.» выведены из 30‑дневного купонного периода выпуска — перед покупкой проверьте ближайшую дату в приложении брокера. Это шуточный подарок, а не инвестиционная рекомендация.
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  const RU_DOW = ["вс","пн","вт","ср","чт","пт","сб"];
+  // amt — купон на 1 облигацию до налога; est — оценка (флоатер); calc — дата рассчитана из 30-дневного периода
+  const PAY = {
+    1:  { who: "Ростелеком 001P-22R", id: "RU000A10E739", r: "AAA", amt: 12.12, calc: true, joke: "Начинаем с провайдера: интернет вам, купон — тоже вам." },
+    2:  { who: "ОФЗ 26248", id: "ОФЗ-ПД 26248", r: "гос", amt: 61.08, joke: "Минфин платит раз в полгода, зато щедро. Самый жирный купон месяца." },
+    3:  { who: "Ростелеком 001P-08R", id: "RU000A108LF3", r: "AAA", amt: 37.88, est: true, note: "квартальный флоатер", joke: "Квартальный купон: копился три месяца ради этого дня." },
+    4:  { who: "Газпром капитал БО-003Р-24", id: "RU000A10ES57", r: "AAA", amt: 12.92, joke: "Газпром прислал. Не газ, но тоже греет." },
+    7:  { who: "МТС 001P-28", id: "RU000A10AV98", r: "AAA", amt: 10.89, note: "6 дек — воскресенье", joke: "Выплату перенесли с воскресенья. Даже облигации не работают по выходным." },
+    8:  { who: "МТС 002Р-16", id: "RU000A10E8N5", r: "AAA", amt: 13.13, est: true, note: "флоатер", joke: "Плавающий купон: МТС сама не знала сумму до последнего." },
+    9:  { who: "Селигдар 001Р-06", id: "RU000A10D3S6", r: "A", amt: 15.21, calc: true, joke: "Золотодобытчик. Технически это ваша доля золотой лихорадки." },
+    10: { who: "Ростелеком 001P-25R", id: "RU000A10ETL7", r: "AAA", amt: 11.22, calc: true, joke: "Снова Ростелеком. Привыкайте, он здесь главный Дед Мороз." },
+    11: { who: "ОФЗ 29027", id: "ОФЗ-ПК 29027", r: "гос", amt: 35.60, est: true, note: "флоатер, ≈14,3% за 91 день", joke: "Государство платит за квартал. Пятница удалась." },
+    14: { who: "ТрансКонтейнер П02-02", id: "RU000A10DG86", r: "AA-", amt: 13.75, note: "13 дек — воскресенье", joke: "Контейнер с купоном прибыл. Растаможка — 13% НДФЛ." },
+    15: { who: "Ростелеком 001P-23R", id: "RU000A10EBE0", r: "AAA", amt: 11.96, calc: true, joke: "Ростелеком, выпуск номер три в вашем календаре." },
+    16: { who: "Магнит БО-004Р-08", id: "RU000A10C618", r: "AA+", amt: 12.29, joke: "Хватит на пакет мандаринов в том же Магните. Круговорот денег." },
+    17: { who: "Газпром нефть 005Р-12R", id: "RU000A10G5K5", r: "AAA", amt: 13.00, est: true, note: "флоатер, КС + 1,7%", joke: "Нефтяной купон. Плавающий, как баррель." },
+    18: { who: "ФПК 002Р-01", id: "RU000A10DYC8", r: "AA+", amt: 12.66, joke: "Федеральная пассажирская компания. Купон прибыл по расписанию, в отличие от поезда." },
+    21: { who: "Ростелеком 001P-24R", id: "RU000A10EN60", r: "AAA", amt: 11.42, note: "20 дек — воскресенье", joke: "Ростелеком № 4. Ещё немного — и вы его акционер в душе." },
+    22: { who: "ГТЛК 002P-13", id: "RU000A10F801", r: "AA-", amt: 13.11, joke: "Лизинг самолётов и поездов. Ваши 13 рублей тоже летают." },
+    23: { who: "ОФЗ 26250", id: "ОФЗ-ПД 26250", r: "гос", amt: 59.84, joke: "Предновогодний подарок от Минфина. Почти 60 рублей!" },
+    24: { who: "ПГК 003Р-05", id: "RU000A10EYW4", r: "AA", amt: 13.56, joke: "Первая грузовая компания везёт купон в вагоне." },
+    25: { who: "ГТЛК 002P-08", id: "RU000A10BQB0", r: "AA-", amt: 16.03, calc: true, joke: "Самый высокий корпоративный купон месяца — 19,5% годовых." },
+    28: { who: "Новотранс 002P-01", id: "RU000A10DCF7", r: "AA-", amt: 13.15, calc: true, note: "26 дек — суббота", joke: "Перенесли с субботы. Понедельник впервые в жизни приятный." },
+    29: { who: "Селектел 001Р-07R", id: "RU000A10EEZ9", r: "A+", amt: 12.33, calc: true, joke: "Дата-центры платят за то, что хранят чужие котики." },
+    30: { who: "МТС 002P-07", id: "RU000A10B1N3", r: "AAA", amt: 12.00, joke: "Последний купон года. Ровно 12 рублей — красиво закрыли." }
+  };
+  const BONUS = {
+    5:  "Слово «купон» буквально: раньше облигации печатали на бумаге с отрывными купонами. Владелец отрезал купон ножницами и нёс в банк.",
+    6:  "НКД — накопленный купонный доход. Покупая облигацию, вы доплатили его продавцу. Поэтому первый купон частично возвращает ваши же деньги. Тсс.",
+    12: "Если выплата выпадает на выходной, её переносят на следующий рабочий день. Поэтому понедельники в этом календаре — с переносами.",
+    13: "С каждого купона брокер сам удержит 13% НДФЛ. Из 12,12 ₽ придёт примерно 10,54 ₽.",
+    19: "Рейтинг AAA — высшая ступень надёжности по российской шкале. У ОФЗ рейтинга нет, они и есть шкала.",
+    20: "Флоатер — облигация с плавающим купоном. Сумма привязана к ключевой ставке ЦБ и становится известна ближе к выплате.",
+    26: "Поздравляем: вы одолжили денег государству, Газпрому, МТС, Магниту и пять раз Ростелекому. Вы теперь кредитор.",
+    27: "Купоны не обязательно тратить. Если реинвестировать их в те же облигации, получится сложный процент — только очень маленький.",
+    31: "31 декабря — выходной, биржа и депозитарий отдыхают. Итог месяца — в шапке. С Новым годом, инвестор!"
+  };
+
+  const fmt = n => n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const total = Object.values(PAY).reduce((s, p) => s + p.amt, 0);
+  document.getElementById("total").textContent = "≈ " + Math.round(total) + " ₽";
+  document.getElementById("net").textContent = "≈ " + Math.round(total * 0.87) + " ₽";
+  document.getElementById("tsum").textContent = "≈ " + fmt(total);
+
+  function mskToday() {
+    try {
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Moscow", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+      return parts; // YYYY-MM-DD
+    } catch (e) {
+      const d = new Date(); return d.toISOString().slice(0, 10);
+    }
+  }
+  const today = mskToday();
+  const isUnlocked = day => today >= "2026-12-" + String(day).padStart(2, "0");
+
+  let opened = new Set();
+  try { (JSON.parse(localStorage.getItem("bond-advent-opened") || "[]")).forEach(d => opened.add(d)); } catch (e) {}
+  function save() { try { localStorage.setItem("bond-advent-opened", JSON.stringify([...opened])); } catch (e) {} }
+
+  const sheet = document.getElementById("sheet");
+  const peek = document.getElementById("peek");
+  ["пн","вт","ср","чт","пт","сб","вс"].forEach(d => {
+    const el = document.createElement("div"); el.className = "dow"; el.textContent = d; sheet.appendChild(el);
+  });
+  // 1 декабря 2026 — вторник: одна пустая ячейка
+  const b0 = document.createElement("div"); b0.className = "blank"; b0.setAttribute("aria-hidden", "true"); sheet.appendChild(b0);
+
+  const cards = {};
+  for (let day = 1; day <= 31; day++) {
+    const dt = new Date(Date.UTC(2026, 11, day));
+    const dow = RU_DOW[dt.getUTCDay()];
+    const p = PAY[day];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "c" + day;
+    btn.className = "coupon" + (p ? "" : " weekend") + ("2026-12-" + String(day).padStart(2, "0") === today ? " today" : "");
+    const tag = p ? (p.est ? "₽ ≈ ?" : "₽ ?") : (day === 31 ? "каникулы" : "бонус");
+    btn.setAttribute("aria-label", day + " декабря, " + dow + (p ? ", купон" : ", выходной бонус"));
+    btn.innerHTML =
+      '<div class="face front">' +
+        '<div class="row"><span class="cap t">' + dow + '</span><span class="cap">№ ' + String(day).padStart(2, "0") + '</span></div>' +
+        '<div class="num">' + day + '</div>' +
+        '<div class="row"><span class="cap">' + tag + '</span><span class="lock" aria-hidden="true">✂</span></div>' +
+      '</div>' +
+      '<div class="face back">' + (p ? backPay(day, p) : backBonus(day)) + '</div>';
+    btn.addEventListener("click", () => toggle(day));
+    sheet.appendChild(btn);
+    cards[day] = btn;
+  }
+  for (let i = 0; i < 3; i++) { const b = document.createElement("div"); b.className = "blank"; b.setAttribute("aria-hidden", "true"); sheet.appendChild(b); }
+
+  function backPay(day, p) {
+    const flags = (p.est ? '<span class="chip est">оценка</span>' : '') + (p.calc ? '<span class="chip">расч.</span>' : '');
+    return '<div class="amt">' + (p.est ? "≈" : "+") + fmt(p.amt) + ' <small>₽</small></div>' +
+      '<div class="who">' + p.who + '</div>' +
+      '<div class="meta"><span class="chip">' + p.r + '</span>' + flags + '<br>' + p.id + '</div>' +
+      '<div class="joke">' + p.joke + '</div>' +
+      '<span class="stamp">ОТРЕЗАН</span>';
+  }
+  function backBonus(day) {
+    return '<div class="cap">' + (day === 31 ? "выходной" : "выходной · бонус") + '</div><div class="joke">' + BONUS[day] + '</div>';
+  }
+
+  const toastEl = document.getElementById("toast");
+  let tt;
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add("on");
+    clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove("on"), 2200);
+  }
+
+  function toggle(day) {
+    const el = cards[day];
+    if (!peek.checked && !isUnlocked(day)) {
+      el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
+      toast("Рано! Этот купон отрывается " + day + " декабря.");
+      return;
+    }
+    if (el.classList.contains("open")) { el.classList.remove("open"); opened.delete(day); }
+    else { el.classList.add("open"); opened.add(day); }
+    save();
+  }
+
+  function render() {
+    for (let day = 1; day <= 31; day++) {
+      const show = peek.checked || (opened.has(day) && isUnlocked(day));
+      cards[day].classList.toggle("open", show);
+    }
+    const status = document.getElementById("status");
+    if (today < "2026-12-01") {
+      status.textContent = "До первого купона ещё ждать — окошки откроются с 1 декабря по московскому времени. Пока успейте купить облигации из списка ниже.";
+    } else if (today > "2026-12-31") {
+      status.textContent = "Декабрь закончился — все купоны можно открыть.";
+    } else {
+      status.textContent = "Купон можно оторвать в день выплаты (по московскому времени). Выходные окошки — с бонусами.";
+    }
+  }
+  peek.addEventListener("change", render);
+  render();
+
+  // таблица покупок
+  const tb = document.getElementById("buy");
+  Object.keys(PAY).map(Number).sort((a, b) => a - b).forEach(day => {
+    const p = PAY[day];
+    const dt = new Date(Date.UTC(2026, 11, day));
+    const note = [p.note, p.est ? "сумма — оценка" : "", p.calc ? "дата расчётная" : ""].filter(Boolean).join("; ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + day + " " + RU_DOW[dt.getUTCDay()] + "</td><td>" + p.who + "</td><td class=\"mono\">" + p.id + "</td><td>" + p.r +
+      "</td><td class=\"r\">" + (p.est ? "≈ " : "") + fmt(p.amt) + "</td><td>" + (note || "—") + "</td>";
+    tb.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>
