@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Купон каждый день до 2028</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oranienbaum&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Та же банкнотная бумага, что и у декабрьского листа. Сетка = 13 месяцев рабочих дней, тон ячейки = число купонов в этот день. */
+  --paper: #e9efe9;
+  --paper-2: #dfe7e0;
+  --ink: #12382c;
+  --ink-soft: #4b6a5e;
+  --rule: #a9bfb3;
+  --stamp: #c2402b;
+  --c1: #9cc3ae;
+  --c2: #4f8f73;
+  --c3: #12382c;
+  --font-display: "Oranienbaum", "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  background-image:
+    repeating-linear-gradient(45deg, rgba(18,56,44,.035) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-45deg, rgba(18,56,44,.035) 0 1px, transparent 1px 7px);
+  color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 64px; display: grid; gap: 36px; }
+a { color: var(--ink); }
+.back { font-family: var(--font-mono); font-size: 13px; letter-spacing: .04em; }
+
+header.cert { border: 2px solid var(--ink); outline: 1px solid var(--ink); outline-offset: 5px; padding: 28px 28px 24px; display: grid; gap: 14px; background: var(--paper); }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(40px, 7.4vw, 86px); line-height: .95; margin: 4px 0 0; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--stamp); }
+.lede { max-width: 64ch; margin: 0; font-size: 17px; }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.fact { display: grid; }
+.fact b { font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: 1; }
+.fact span { font-size: 13px; color: var(--ink-soft); }
+
+section h2 { font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.05; margin: 0 0 6px; text-wrap: balance; }
+section > p { margin: 0 0 16px; max-width: 66ch; }
+
+/* цикл из 30 фаз */
+.cycle { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); border: 1px solid var(--ink); }
+.ph { border-right: 1px dashed var(--rule); border-bottom: 1px dashed var(--rule); padding: 6px 6px 8px; min-height: 74px; display: grid; align-content: space-between; gap: 4px; background: var(--paper); }
+.ph:nth-child(15n) { border-right: 0; }
+.ph:nth-child(n+16) { border-bottom: 0; }
+.ph .d { font-family: var(--font-display); font-size: 24px; line-height: 1; }
+.ph .w { font-size: 10.5px; line-height: 1.2; color: var(--ink-soft); hyphens: auto; -webkit-hyphens: auto; overflow-wrap: anywhere; }
+
+/* тепловая карта */
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; align-items: center; }
+.sw { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--rule); }
+.months { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px 20px; }
+.month h3 { font-family: var(--font-mono); font-weight: 500; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 6px; display: flex; justify-content: space-between; }
+.month h3 span { color: var(--ink-soft); }
+.grid7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.day {
+  aspect-ratio: 1; border: 0; padding: 0; font: inherit; font-size: 10.5px; font-variant-numeric: tabular-nums;
+  display: grid; place-items: center; cursor: pointer; border-radius: 2px; color: var(--ink);
+}
+.day.off { background: repeating-linear-gradient(45deg, transparent 0 3px, rgba(18,56,44,.12) 3px 4px); color: var(--ink-soft); cursor: default; }
+.day.n1 { background: var(--c1); }
+.day.n2 { background: var(--c2); color: #fff; }
+.day.n3 { background: var(--c3); color: #fff; }
+.day.miss { background: var(--stamp); color: #fff; }
+.day.sel { outline: 2px solid var(--stamp); outline-offset: 1px; }
+.day:focus-visible { outline: 2px solid var(--stamp); outline-offset: 1px; }
+.pad { aspect-ratio: 1; }
+
+.detail { margin-top: 18px; border: 2px solid var(--ink); padding: 14px 18px; display: grid; gap: 6px; min-height: 96px; }
+.detail .when { font-family: var(--font-display); font-size: 26px; line-height: 1; }
+.detail ul { margin: 0; padding-left: 18px; columns: 2 240px; column-gap: 28px; font-size: 14px; }
+.detail li { break-inside: avoid; }
+.detail .sum { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); }
+
+/* таблица */
+.tablewrap { overflow-x: auto; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+table { border-collapse: collapse; width: 100%; min-width: 820px; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+td.r, th.r { text-align: right; }
+td.mono { font-family: var(--font-mono); font-size: 12.5px; }
+tfoot td { font-weight: 600; border-bottom: 0; }
+.warn { color: var(--stamp); font-weight: 600; }
+
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 28px; }
+.rule h3 { font-family: var(--font-mono); font-weight: 500; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 4px; color: var(--stamp); }
+.rule p { margin: 0; font-size: 14.5px; }
+footer { font-size: 12.5px; color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 14px; max-width: 80ch; }
+
+@media (max-width: 720px) {
+  .cycle { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ph { border-right: 1px dashed var(--rule) !important; border-bottom: 1px dashed var(--rule) !important; }
+  header.cert { padding: 22px 18px 18px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Декабрьский адвент</a>
+
+  <header class="cert">
+    <div class="eyebrow"><span>Купонный лист · серия 2027</span><span>30 облигаций · 30 фаз</span></div>
+    <h1>Купон <em>каждый</em> рабочий день до 2028</h1>
+    <p class="lede">Продолжение шутки для тех, кому мало декабря. 30 облигаций, у каждой своя дата выплаты внутри 30-дневного цикла. Вместе они платят в каждый рабочий день с 1 декабря 2026 по 31 декабря 2027 года.</p>
+    <div class="facts">
+      <div class="fact"><b>30</b><span>облигаций, по одной штуке</span></div>
+      <div class="fact"><b id="f-days">—</b><span>рабочих дней без пропусков</span></div>
+      <div class="fact"><b>≈ 30,4 тыс. ₽</b><span>стоимость набора с НКД</span></div>
+      <div class="fact"><b>≈ 4,1 тыс. ₽</b><span>чистыми за 13 месяцев</span></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="how-h">
+    <h2 id="how-h">Почему это работает</h2>
+    <p>Ежемесячные облигации платят не «каждое 15-е число», а строго раз в 30 дней. Поэтому дата у каждой облигации немного сдвигается, но порядок внутри цикла не меняется. Мы взяли по облигации на каждый из 30 дней цикла: на любой календарный день приходится ровно одна выплата. Если день выходной, деньги приходят в ближайший рабочий. Ниже — первый цикл, декабрь 2026.</p>
+    <div class="cycle" id="cycle"></div>
+  </section>
+
+  <section aria-labelledby="map-h">
+    <h2 id="map-h">Календарь выплат на 13 месяцев</h2>
+    <p>Каждая клетка — день. Чем темнее, тем больше купонов приходит в этот день (после выходных и праздников выплаты копятся). Нажмите на день, чтобы увидеть, кто платит.</p>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--c1)"></i>1 купон</span>
+      <span><i class="sw" style="background:var(--c2)"></i>2</span>
+      <span><i class="sw" style="background:var(--c3)"></i>3 и больше</span>
+      <span><i class="sw" style="background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(18,56,44,.25) 3px 4px)"></i>выходной или праздник</span>
+    </div>
+    <div class="months" id="months"></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+  </section>
+
+  <section aria-labelledby="list-h">
+    <h2 id="list-h">Что купить</h2>
+    <p>По одной облигации каждого выпуска, лучше до 26 ноября 2026. Все гасятся не раньше января 2028. Купон указан на одну облигацию до налога.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Фаза</th><th>Выпуск</th><th>ISIN</th><th>Рейтинг</th><th class="r">Купон, ₽</th><th>Погашение</th><th>Примечание</th></tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr><td></td><td>Один полный цикл (30 дней)</td><td></td><td></td><td class="r" id="cyclesum"></td><td></td><td>≈ 400 ₽ в месяц</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="risk-h">
+    <h2 id="risk-h">Где может сломаться</h2>
+    <div class="rules">
+      <div class="rule"><h3>МТС 002P-07</h3><p>У выпуска колл-опцион 3 марта 2027: МТС может погасить его досрочно. Тогда фаза 30 опустеет и понадобится замена.</p></div>
+      <div class="rule"><h3>Флоатеры</h3><p>У восьми бумаг купон привязан к ключевой ставке. Если ЦБ снизит ставку, выплаты уменьшатся, но не исчезнут.</p></div>
+      <div class="rule"><h3>Селигдар ×4</h3><p>Четыре выпуска одного эмитента с рейтингом A. Другие подходящие бумаги на эти фазы, доживающие до 2028, не нашлись.</p></div>
+      <div class="rule"><h3>Даты «расч.»</h3><p>Часть дат выведена из 30-дневного периода, а не взята из графика. Перед покупкой сверьте ближайшую выплату в приложении брокера.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Расчёт по графикам купонов Мосбиржи на 11 ноября 2026 (сверено по investmint.ru), производственный календарь 2027 — по постановлению Правительства № 1187. Чистая прибыль — оценка: купоны минус НКД, переплата сверх номинала и НДФЛ 13%, при условии что все эмитенты платят. Не инвестиционная рекомендация.
+  </footer>
+</div>
+
+<script>
+(function () {
+  // [фаза, выпуск, ISIN, рейтинг, купон, первая номинальная дата, погашение, флаги, примечание]
+  const B = [
+    [1,"Ростелеком 001P-22R","RU000A10E739","AAA",12.12,"2026-12-01","07.2028","c",""],
+    [2,"ТрансКонтейнер П02-03","RU000A10F470","AA-",13.56,"2026-12-02","04.2029","",""],
+    [3,"Новосибирская обл. 34028","RU000A10DSG1","AA-",13.25,"2026-12-03","12.2028","f",""],
+    [4,"Газпром капитал БО-003Р-24","RU000A10ES57","AAA",12.92,"2026-12-04","04.2029","f",""],
+    [5,"ЯТЭК 001Р-07","RU000A10G9N1","A?",13.68,"2026-12-05","03.2029","f","рейтинг проверьте"],
+    [6,"МТС 001P-28","RU000A10AV98","AAA",10.89,"2026-12-06","01.2028","c","оферта 09.06.2027"],
+    [7,"ПГК 003Р-02","RU000A10DSL1","AA",13.11,"2026-12-07","11.2030","",""],
+    [8,"РусГидро БО-002Р-08","RU000A10D3C0","AAA",12.70,"2026-12-08","09.2028","",""],
+    [9,"Селигдар 001Р-06","RU000A10D3S6","A",15.21,"2026-12-09","04.2028","c",""],
+    [10,"Ростелеком 001P-25R","RU000A10ETL7","AAA",11.22,"2026-12-10","04.2028","c",""],
+    [11,"Селигдар 001Р-08","RU000A10DTF1","A",14.79,"2026-12-11","06.2028","c",""],
+    [12,"Ростелеком 001P-28R","RU000A10FNL7","AAA",11.88,"2026-12-12","06.2031","f",""],
+    [13,"ТрансКонтейнер П02-02","RU000A10DG86","AA-",13.75,"2026-12-13","11.2028","",""],
+    [14,"Селигдар 001Р-04","RU000A10C5L7","A",15.62,"2026-12-14","01.2028","c",""],
+    [15,"Ростелеком 001P-23R","RU000A10EBE0","AAA",11.96,"2026-12-15","02.2028","c",""],
+    [16,"Селигдар 001Р-10","RU000A10EC22","A",13.68,"2026-12-16","02.2029","c",""],
+    [17,"Газпром нефть 005Р-12R","RU000A10G5K5","AAA",13.00,"2026-12-17","08.2031","f",""],
+    [18,"ФПК 002Р-01","RU000A10DYC8","AA+",12.66,"2026-12-18","06.2028","",""],
+    [19,"ВТБ Лизинг 001Р-МБ-06","RU000A10FGN7","AA",13.00,"2026-12-19","~2029","cf","сумму и амортизацию проверьте"],
+    [20,"Ростелеком 001P-24R","RU000A10EN60","AAA",11.42,"2026-12-20","01.2028","",""],
+    [21,"Авто Финанс Банк БО-001Р-16","RU000A10D9K0","AA",13.68,"2026-12-21","02.2028","",""],
+    [22,"ГТЛК 002P-13","RU000A10F801","AA-",13.11,"2026-12-22","05.2030","",""],
+    [23,"Россети 001P-19R","RU000A10DM96","AAA",12.60,"2026-12-23","~2028","f",""],
+    [24,"ПГК 003Р-04","RU000A10EYV6","AA",12.66,"2026-12-24","09.2029","c",""],
+    [25,"ГТЛК 002P-08","RU000A10BQB0","AA-",16.03,"2026-12-25","05.2028","c",""],
+    [26,"Новотранс 002P-01","RU000A10DCF7","AA-",13.15,"2026-12-26","10.2028","c",""],
+    [27,"ГТЛК 002P-11","RU000A10DP51","AA-",11.88,"2026-12-27","11.2028","cf",""],
+    [28,"Биннофарм 001Р-04","RU000A10AS28","A?",15.62,"2026-12-28","01.2028","","рейтинг проверьте"],
+    [29,"Селектел 001Р-07R","RU000A10EEZ9","A+",12.33,"2026-12-29","02.2029","c",""],
+    [30,"МТС 002P-07","RU000A10B1N3","AAA",12.00,"2026-12-30","02.2028","","колл-опцион 03.03.2027"]
+  ];
+  const HOL = new Set(["2026-12-31","2027-02-22","2027-02-23","2027-03-08","2027-05-03","2027-05-10","2027-06-14","2027-11-04","2027-11-05","2027-12-31"]);
+  for (let d = 1; d <= 10; d++) HOL.add("2027-01-" + String(d).padStart(2, "0"));
+  const WORK_SAT = new Set(["2027-02-20"]);
+  const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const MON_G = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+  const DOW = ["вс","пн","вт","ср","чт","пт","сб"];
+
+  const iso = d => d.toISOString().slice(0, 10);
+  const mk = s => new Date(s + "T00:00:00Z");
+  const addD = (d, n) => new Date(d.getTime() + n * 86400000);
+  const isWork = d => { const s = iso(d), w = d.getUTCDay(); if (WORK_SAT.has(s)) return true; return w !== 0 && w !== 6 && !HOL.has(s); };
+  const nextWork = d => { while (!isWork(d)) d = addD(d, 1); return d; };
+  const fmt = n => n.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const START = mk("2026-12-01"), END = mk("2027-12-31");
+  const pays = {};
+  B.forEach(b => {
+    for (let d = mk(b[5]); d <= END; d = addD(d, 30)) {
+      const p = iso(nextWork(d));
+      if (mk(p) > END) continue;
+      (pays[p] = pays[p] || []).push(b);
+    }
+  });
+
+  // цикл
+  const cyc = document.getElementById("cycle");
+  B.forEach(b => {
+    const d = mk(b[5]);
+    const el = document.createElement("div"); el.className = "ph";
+    el.innerHTML = '<span class="d">' + d.getUTCDate() + '</span><span class="w">' + b[1].replace(/ (БО-|00\dP|00\dР|П0|34028).*$/, "") + '</span>';
+    el.title = b[1] + " — " + d.getUTCDate() + " " + MON_G[d.getUTCMonth()];
+    cyc.appendChild(el);
+  });
+
+  // карта
+  const months = document.getElementById("months");
+  let workDays = 0, missing = 0, sel = null;
+  const cells = {};
+  for (let m = new Date(START); m <= END; m = new Date(Date.UTC(m.getUTCFullYear(), m.getUTCMonth() + 1, 1))) {
+    const y = m.getUTCFullYear(), mo = m.getUTCMonth();
+    const box = document.createElement("div"); box.className = "month";
+    let monthSum = 0;
+    const g = document.createElement("div"); g.className = "grid7";
+    const first = new Date(Date.UTC(y, mo, 1));
+    const lead = (first.getUTCDay() + 6) % 7;
+    for (let i = 0; i < lead; i++) { const p = document.createElement("span"); p.className = "pad"; g.appendChild(p); }
+    for (let d = first; d.getUTCMonth() === mo; d = addD(d, 1)) {
+      const s = iso(d);
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.textContent = d.getUTCDate(); btn.className = "day";
+      const list = pays[s] || [];
+      if (!isWork(d)) { btn.classList.add("off"); btn.disabled = true; btn.setAttribute("aria-label", d.getUTCDate() + " " + MON_G[mo] + ", выходной"); }
+      else {
+        workDays++;
+        const n = list.length;
+        monthSum += list.reduce((a, b) => a + b[4], 0);
+        btn.classList.add(n === 0 ? "miss" : n === 1 ? "n1" : n === 2 ? "n2" : "n3");
+        if (n === 0) missing++;
+        btn.setAttribute("aria-label", d.getUTCDate() + " " + MON_G[mo] + ", купонов: " + n);
+        btn.addEventListener("click", () => show(s));
+        cells[s] = btn;
+      }
+      g.appendChild(btn);
+    }
+    box.innerHTML = '<h3>' + MONTHS[mo] + ' ' + y + '<span>≈ ' + Math.round(monthSum) + ' ₽</span></h3>';
+    box.appendChild(g);
+    months.appendChild(box);
+  }
+  document.getElementById("f-days").textContent = missing === 0 ? String(workDays) : (workDays - missing) + " из " + workDays;
+
+  const detail = document.getElementById("detail");
+  function show(s) {
+    if (sel && cells[sel]) cells[sel].classList.remove("sel");
+    sel = s; if (cells[s]) cells[s].classList.add("sel");
+    const d = mk(s), list = pays[s] || [];
+    const sum = list.reduce((a, b) => a + b[4], 0);
+    detail.innerHTML = '<div class="when">' + d.getUTCDate() + ' ' + MON_G[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ', ' + DOW[d.getUTCDay()] + '</div>' +
+      '<ul>' + list.map(b => '<li>' + b[1] + ' — ' + (b[7].includes("f") ? "≈" : "") + fmt(b[4]) + ' ₽</li>').join("") + '</ul>' +
+      '<div class="sum">Итого ≈ ' + fmt(sum) + ' ₽ до налога · ≈ ' + fmt(sum * 0.87) + ' ₽ после</div>';
+  }
+  // по умолчанию — сегодня (МСК), если он в диапазоне, иначе 11 января 2027 (самый «жирный» день)
+  let today;
+  try { today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Moscow" }).format(new Date()); } catch (e) { today = iso(new Date()); }
+  let start = "2027-01-11";
+  if (cells[today]) start = today;
+  show(start);
+
+  // таблица
+  const tb = document.getElementById("tbody");
+  let cs = 0;
+  B.forEach(b => {
+    cs += b[4];
+    const d = mk(b[5]);
+    const notes = [b[7].includes("f") ? "флоатер" : "", b[7].includes("c") ? "дата расч." : "", b[8]].filter(Boolean);
+    const warn = /колл|оферта/.test(b[8]);
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + d.getUTCDate() + " дек</td><td>" + b[1] + "</td><td class=\"mono\">" + b[2] + "</td><td>" + b[3] + "</td><td class=\"r\">" +
+      (b[7].includes("f") ? "≈ " : "") + fmt(b[4]) + "</td><td>" + b[6] + "</td><td" + (warn ? ' class="warn"' : "") + ">" + (notes.join("; ") || "—") + "</td>";
+    tb.appendChild(tr);
+  });
+  document.getElementById("cyclesum").textContent = "≈ " + fmt(cs);
+})();
+</script>
+</body>
+</html>
